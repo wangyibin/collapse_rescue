@@ -7,7 +7,7 @@ Method for rescuing collapsed contigs.
     git clone https://github.com/wangyibin/collapse_rescue.git
     cd collapse_rescue
     chmod +x bin/* 
-    pip install requirements.txt
+    pip install -r requirements.txt
     ```
 - configure  
 `vim ~/.bash_profile`
@@ -15,8 +15,9 @@ Method for rescuing collapsed contigs.
     export PATH=$HOME/software/collapse_rescue/bin:$PATH
     export PATH=$HOME/software/ALLHiC_adjuster/bin:$PATH
     export PATH=$HOME/software/ALLHiC/bin:$PATH
+    export PATH=$HOME/software/popCNV/bin:$PATH
     ```
-## Dependency
+## Dependencies
 1. python packages
     - rich
     - joblib
@@ -31,17 +32,18 @@ Method for rescuing collapsed contigs.
     - [popCNV](https://github.com/sc-zhang/popCNV)
 
 ## Methods
-1. calculate copy number using `popCNV`
+1. calculate the copy number of each contig using `popCNV`
     ```bash
     mkdir read_depth && cd read_depth
-    mosdepth -t 10 -b 1000 LAp LAp.merge.bam
+    mosdepth -t 10 -b 1000 LAp LAp.contig.bam
     cd ..
-    popCNV -g LAp.asm.fasta -s 1000 -r read_depth/ -b bamfile/ -l contig.bed -w wrk_dir --group group.list  --sample sample.list --wild 0 -t 10
+    popCNV -g LAp.contig.fasta -s 1000 -r read_depth/ -b bamfile/ -l contig.bed -w wrk_dir --group group.list  --sample sample.list --wild 0 -t 10
     ```
+    Alignment must use contig-level assembly as reference.
 2. rescue
     ```bash
     agp2cluster.py LAp.agp > LAp.clusters.txt
-    dup_collapsed_contigs.py Allele.ctg.table 06.genes.round.cn LAp.clusters.txt 8  -o output
+    dup_collapsed_contigs.py Allele.ctg.table 06.genes.round.cn LAp.clusters.txt 8 -o output
     ```
     `Allele.ctg.table` generated from `ALLHiC`  
     `06.genes.round.cn` generated from `popCNV`  
@@ -53,7 +55,7 @@ Method for rescuing collapsed contigs.
     `LAp.pairs.txt` and `LAp.clm` were generated from `allhic extract`
 4. build
     ```bash
-    dup_collapsed_fasta.py collapsed.optimize.txt LAp.fasta > contig.dup.fasta
+    dup_collapsed_fasta.py collapsed.optimize.txt LAp.contig.fasta > contig.dup.fasta
     cd new_tour
     ALLHiC_build contig.dup.fasta
     ```
